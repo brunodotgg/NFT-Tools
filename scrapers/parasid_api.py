@@ -67,41 +67,42 @@ for i in range(iter):
     request = json.loads(request.content.decode())
     if "data" in request:
         if "results" in request["data"]:
-            last = list(request["data"]["results"])[-1]
-            nextID = last["_id"]
-            nextUpdated = last["updated_at"]
-            for asset in request["data"]["results"]:
-                if(newID > number):
-                    exit()
-                sys.stdout.flush()
-                print(f"[{newID}/{number}] {asset['metadata']['title']}", end='\r')
-                metadata = {
-                    "name": f"{newName} #{newID}",
-                    "description": f"{newName} #{newID}",
-                }
+            if len(list(request["data"]["results"])) > 0:
+                last = list(request["data"]["results"])[-1]
+                nextID = last["_id"]
+                nextUpdated = last["updated_at"]
+                for asset in request["data"]["results"]:
+                    if(newID > number):
+                        exit()
+                    sys.stdout.flush()
+                    print(f"[{newID}/{number}] {asset['metadata']['title']}", end='\r')
+                    metadata = {
+                        "name": f"{newName} #{newID}",
+                        "description": f"{newName} #{newID}",
+                    }
 
-                if "attributes" in asset["metadata"]:
-                    metadata["attributes"] = asset["metadata"]["attributes"] 
+                    if "attributes" in asset["metadata"]:
+                        metadata["attributes"] = asset["metadata"]["attributes"] 
 
-                dfile = open(f"../collections/{platform}/{collectionName}/metadata/{newID}.json", "w+")
-                json.dump(metadata, dfile, indent=3)
-                dfile.close()
-                
-                if "http" not in asset['metadata']['media']:
-                    image = requests.get(f"https://paras-cdn.imgix.net/{asset['metadata']['media']}?w=600")
-                else:
-                    image = requests.get(asset['metadata']['media'])
+                    dfile = open(f"../collections/{platform}/{collectionName}/metadata/{newID}.json", "w+")
+                    json.dump(metadata, dfile, indent=3)
+                    dfile.close()
+                    
+                    if "http" not in asset['metadata']['media']:
+                        image = requests.get(f"https://paras-cdn.imgix.net/{asset['metadata']['media']}?w=600")
+                    else:
+                        image = requests.get(asset['metadata']['media'])
 
-                extension = "png"
+                    extension = "png"
 
-                if "mime_type" in asset["metadata"]:
-                    if asset["metadata"]["mime_type"] == "image/gif":
-                        extension = 'gif'
+                    if "mime_type" in asset["metadata"]:
+                        if asset["metadata"]["mime_type"] == "image/gif":
+                            extension = 'gif'
 
-                # If the URL returns status code "200 Successful", save the image into the "images" folder.
-                if not image == {} and image.status_code == 200:
-                    file = open(f"../collections/{platform}/{collectionName}/og-art/{newID}.{extension}", "wb+")
-                    file.write(image.content)
-                    file.close()
-                    newID += 1
+                    # If the URL returns status code "200 Successful", save the image into the "images" folder.
+                    if not image == {} and image.status_code == 200:
+                        file = open(f"../collections/{platform}/{collectionName}/og-art/{newID}.{extension}", "wb+")
+                        file.write(image.content)
+                        file.close()
+                        newID += 1
 print("\nFinished.\n")
