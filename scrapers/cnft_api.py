@@ -71,14 +71,21 @@ for i in range(iter):
                     metadata = {
                         "name": f"{newName} #{newID}",
                         "description": f"{newName} #{newID}",
+                        "attributes": []
                     }
 
-                    metadata["attributes"] = copy.deepcopy(asset['asset']["metadata"])
+                    attributes = copy.deepcopy(asset['asset']["metadata"])
 
-                    if metadata["attributes"]["image"]:
-                        del metadata["attributes"]["image"]
-                    if metadata["attributes"]["name"]:
-                        del metadata["attributes"]["name"]
+                    if attributes["image"]:
+                        del attributes["image"]
+                    if attributes["name"]:
+                        del attributes["name"]
+
+                    for attribute in attributes:
+                        metadata["attributes"].append({
+                            "trait_type": attribute,
+                            "value": attributes[attribute],
+                        })
 
                     dfile = open(
                         f"../collections/{platform}/{collectionName}/metadata/{newID}.json", "w+")
@@ -87,7 +94,8 @@ for i in range(iter):
                     if "image" in asset['asset']['metadata']:
                         image = requests.get(
                             f"https://testimage.cnft.io/get-resized-image?URL={asset['asset']['metadata']['image'].replace('ipfs://ipfs/', '')}")
-                        image = requests.get(image.content.decode().replace('"', ''))
+                        image = requests.get(
+                            image.content.decode().replace('"', ''))
                         extension = "png"
 
                         # If the URL returns status code "200 Successful", save the image into the "images" folder.

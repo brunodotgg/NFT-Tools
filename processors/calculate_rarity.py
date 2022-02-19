@@ -63,6 +63,8 @@ for x in weight:
     for row in data["attributes"]:
         if row["trait_type"] == "Rarity Rank":
             data["attributes"].remove(row)
+        if row["trait_type"].lower() == "id":
+            data["attributes"].remove(row)
 
     data["attributes"].append({
         "trait_type": "Rarity Rank",
