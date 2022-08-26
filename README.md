@@ -34,9 +34,9 @@ Rarity Checker
 
 ```bash
 cd processors
-python3 calculate_rarity.py {SLUG} "{PLATFORM}" 
+python3 calculate_rarity.py {SLUG} {PLATFORM}
 ```
-The collection metadata will be updated and can be found in `collections/paras.id/{SLUG}/metadata`
+The collection metadata will be updated and can be found in `collections/{PLATFORM}/{SLUG}/metadata`
 
 ## Authors
 
