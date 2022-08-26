@@ -1,6 +1,7 @@
 
 from pickletools import optimize
 import sys
+import time
 import requests
 import os
 import json
@@ -23,12 +24,20 @@ newName: {newName} [{symbol}]
 number: {number}
 """)
 
-collection = requests.get(f"https://api.opensea.io/collection/{collectionName}?format=json", headers=headers)
+throttled = True
 
-collection = json.loads(collection.content.decode())
+while(throttled):
+    collection = requests.get(f"https://api.opensea.io/collection/{collectionName}?format=json", headers=headers)
 
-if not collection["collection"]["name"]:
-    print("Error with parsing the collection.")
+    collection = json.loads(collection.content.decode())
+    if('detail' in collection and collection['detail'] == 'Request was throttled.'):
+        print(f"\nRequest was throttled. Retrying in 60 seconds\n")
+        time.sleep(60)
+    else: 
+        throttled = False
+
+
+    
 
 print(f"There are {collection['collection']['stats']['total_supply']} nfts available, we need {number}.")
 
@@ -59,11 +68,20 @@ newID = 1
 
 for i in range(iter):
     offset = i * per_page
-    request = requests.get(f"https://api.opensea.io//assets?order_direction=desc&order_by=sale_price&offset={offset}&limit={per_page}&collection={collectionName}&format=json", headers=headers)
-    request = json.loads(request.content.decode())
+    throttled = True
+
+    while(throttled):
+        request = requests.get(f"https://api.opensea.io//assets?order_direction=desc&order_by=sale_price&offset={offset}&limit={per_page}&collection={collectionName}&format=json", headers=headers)
+        request = json.loads(request.content.decode())
+        if('detail' in request and request['detail'] == 'Request was throttled.'):
+            print(f"\nRequest was throttled. Retrying in 60 seconds\n")
+            time.sleep(60)
+        else: 
+            throttled = False
+    
     if "assets" in request:
         for asset in request["assets"]:
-            # sys.stdout.flush()
+            sys.stdout.write('\033[2K\033[1G')
             print(f"[{newID}/{number}] {asset['name']}", end='\r')
             metadata = {
                 "name": f"{newName} #{newID}",
