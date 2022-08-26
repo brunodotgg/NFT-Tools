@@ -6,6 +6,7 @@ import requests
 import os
 import json
 import math
+import ipfsApi
 from PIL import Image, ImageOps, ImageTk
 
 collectionName = sys.argv[1]
@@ -82,27 +83,31 @@ for i in range(iter):
                         del attributes["name"]
 
                     for attribute in attributes:
-                        metadata["attributes"].append({
-                            "trait_type": attribute,
-                            "value": attributes[attribute],
-                        })
+                        if attribute == 'traits':
+                            for trait in attributes[attribute]:
+                                metadata["attributes"].append({
+                                    "trait_type": trait,
+                                    "value": attributes[attribute][trait],
+                                })
 
                     dfile = open(
                         f"../collections/{platform}/{collectionName}/metadata/{newID}.json", "w+")
                     json.dump(metadata, dfile, indent=3)
                     dfile.close()
                     if "image" in asset['asset']['metadata']:
+                        api = ipfsApi.Client(host='https://ipfs.infura.io', port=5001)
                         image = requests.get(
-                            f"https://testimage.cnft.io/get-resized-image?URL={asset['asset']['metadata']['image'].replace('ipfs://ipfs/', '')}")
-                        image = requests.get(
-                            image.content.decode().replace('"', ''))
+                            f"https://media.cnft.io/{asset['asset']['metadata']['image'].replace('ipfs://', '').replace('ipfs/', '')}&350", stream=True)
+                        # image = requests.get(
+                        #     image.content.decode().replace('"', ''), stream=True)
                         extension = "png"
-
                         # If the URL returns status code "200 Successful", save the image into the "images" folder.
-                        if not image == {} and image.status_code == 200:
+                        if image.ok:
                             file = open(
                                 f"../collections/{platform}/{collectionName}/og-art/{newID}.{extension}", "wb+")
-                            file.write(image.content)
-                            file.close()
+                            for block in image.iter_content(1024):
+                                if not block:
+                                    break
+                                file.write(block)
                             newID += 1
 print("\nFinished.\n")
